@@ -66,14 +66,16 @@ static int _plateau[] = {
     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 };
 
+//hauteu du plateau
 static int _H = 19;
+//largeur du plateau
 static int _W = 15;
 
 // Position de départ de ma balle
 static vec3 _ballePosition = {0, 6, 0.0f};
 // Je positionne la raquette en dessous de la position de départ de ma balle
 static vec3 _raquettePosition = {0, 13, 0.0f};
-// Vitesse de la balle, initialiser dans la fonction init
+// Vitesse de la balle
 static vec2 _vitesseBalle = {0, 0};
 
 void game() {
@@ -89,36 +91,25 @@ void game() {
   _ballePosition.x += _vitesseBalle.x * dt;
   _ballePosition.y += _vitesseBalle.y * dt;
 
-  //_raquette.x
+
   float md =  _W - 1.5f;
   float mg = -_W - 1.0f;
   float mb = _H - 9.0f;
   float mh = - _H - 7.0f;
-  //printf("mb %f \n", mb);
-  //printf("mh %f \n", mh);
-  //printf("- %f \n", mg);
+
   if (_ballePosition.y <= mh) {
-    //printf("toucher \n");
-    //printf("%f\n", _vitesseBalle.y);
-    // printf("%f here\n", _ballePosition.y);
+
     _vitesseBalle.y = -_vitesseBalle.y;
     _ballePosition.x += 0.2f;
   } else if(_ballePosition.x >= md) {
-    //printf("toucher");
     _vitesseBalle.x = -_vitesseBalle.x;
     _ballePosition.y -= 0.2f;
   } else if (_ballePosition.x <= mg)
   {
     _vitesseBalle.x = -_vitesseBalle.x;
-    //printf("toucher");
     _ballePosition.y -= 0.2f;
   }
    else if (_ballePosition.y >= mb) {
-    // printf("| perdu \n");
-    // printf("- %f \n", _ballePosition.y);
-    // printf("+ %d \n", _H);
-    // printf("mb %f \n", mb);
-    //exit(1);
     _ballePosition.x = 0.0;
     _ballePosition.y = 6.0;
     _vitesseBalle.y = 0.0;
@@ -299,15 +290,11 @@ void draw(void)
         // rotate(nmv, a, 0.0f, 0.0f, 1.0f);
         transform_n_rasterize(_wall, nmv, projection_matrix);
       } else if(_plateau[i * _W + j] == 2) {
-        // memcpy(nmv, model_view_matrix, sizeof nmv); /* copie model_view_matrix dans nmv */
-        // translate(nmv, 2 * j + cX, -1.0f, 2 * i + cZ);
-        // // rotate(nmv, a, 0.0f, 0.0f, 1.0f);
-        // transform_n_rasterize(_brick, nmv, projection_matrix);
-      } /*else if(_plateau[i * _W + j] == 0) {
-        memcpy(nmv, model_view_matrix, sizeof nmv);
-        translate(nmv, 2 * j + cX, 0.0f, 2 * i + cZ);
-        transform_n_rasterize(_sol, nmv, projection_matrix);
-      }*/
+        memcpy(nmv, model_view_matrix, sizeof nmv); /* copie model_view_matrix dans nmv */
+        translate(nmv, 2 * j + cX, -1.0f, 2 * i + cZ);
+        // rotate(nmv, a, 0.0f, 0.0f, 1.0f);
+        transform_n_rasterize(_brick, nmv, projection_matrix);
+      }
     }
   }
 
@@ -353,62 +340,62 @@ void key(int keycode)
     _vitesseBalle.y = -15.0f;
   }
 
-  // switch (keycode)
-  // {
-  // case GL4DK_UP:
-  //   _ycam += 0.05f;
-  //   break;
-  // case GL4DK_DOWN:
-  //   _ycam -= 0.05f;
-  //   break;
-  // case GL4DK_t: /* 't' la texture */
-  //   _use_tex = !_use_tex;
-  //   if (_use_tex)
-  //   {
-  //     enable_surface_option(_brick, SO_USE_TEXTURE);
-  //     enable_surface_option(_wall, SO_USE_TEXTURE);
-  //     enable_surface_option(_balle, SO_USE_TEXTURE);
-  //   }
-  //   else
-  //   {
-  //     disable_surface_option(_brick, SO_USE_TEXTURE);
-  //     disable_surface_option(_wall, SO_USE_TEXTURE);
-  //     disable_surface_option(_balle, SO_USE_TEXTURE);
-  //   }
-  //   break;
-  // case GL4DK_c: /* 'c' utiliser la couleur */
-  //   _use_color = !_use_color;
-  //   if (_use_color)
-  //   {
-  //     enable_surface_option(_brick, SO_USE_COLOR);
-  //     enable_surface_option(_wall, SO_USE_COLOR);
-  //     enable_surface_option(_balle, SO_USE_COLOR);
-  //   }
-  //   else
-  //   {
-  //     disable_surface_option(_brick, SO_USE_COLOR);
-  //     disable_surface_option(_wall, SO_USE_COLOR);
-  //     disable_surface_option(_balle, SO_USE_COLOR);
-  //   }
-  //   break;
-  // case GL4DK_l: /* 'l' utiliser l'ombrage par la méthode Gouraud */
-  //   _use_lighting = !_use_lighting;
-  //   if (_use_lighting)
-  //   {
-  //     enable_surface_option(_brick, SO_USE_LIGHTING);
-  //     enable_surface_option(_wall, SO_USE_LIGHTING);
-  //     enable_surface_option(_balle, SO_USE_LIGHTING);
-  //   }
-  //   else
-  //   {
-  //     disable_surface_option(_brick, SO_USE_LIGHTING);
-  //     disable_surface_option(_wall, SO_USE_LIGHTING);
-  //     disable_surface_option(_balle, SO_USE_LIGHTING);
-  //   }
-  //   break;
-  // default:
-  //   break;
-  // }
+  switch (keycode)
+  {
+  case GL4DK_UP:
+    _ycam += 0.05f;
+    break;
+  case GL4DK_DOWN:
+    _ycam -= 0.05f;
+    break;
+  case GL4DK_t: /* 't' la texture */
+    _use_tex = !_use_tex;
+    if (_use_tex)
+    {
+      enable_surface_option(_brick, SO_USE_TEXTURE);
+      enable_surface_option(_wall, SO_USE_TEXTURE);
+      enable_surface_option(_balle, SO_USE_TEXTURE);
+    }
+    else
+    {
+      disable_surface_option(_brick, SO_USE_TEXTURE);
+      disable_surface_option(_wall, SO_USE_TEXTURE);
+      disable_surface_option(_balle, SO_USE_TEXTURE);
+    }
+    break;
+  case GL4DK_c: /* 'c' utiliser la couleur */
+    _use_color = !_use_color;
+    if (_use_color)
+    {
+      enable_surface_option(_brick, SO_USE_COLOR);
+      enable_surface_option(_wall, SO_USE_COLOR);
+      enable_surface_option(_balle, SO_USE_COLOR);
+    }
+    else
+    {
+      disable_surface_option(_brick, SO_USE_COLOR);
+      disable_surface_option(_wall, SO_USE_COLOR);
+      disable_surface_option(_balle, SO_USE_COLOR);
+    }
+    break;
+  case GL4DK_l: /* 'l' utiliser l'ombrage par la méthode Gouraud */
+    _use_lighting = !_use_lighting;
+    if (_use_lighting)
+    {
+      enable_surface_option(_brick, SO_USE_LIGHTING);
+      enable_surface_option(_wall, SO_USE_LIGHTING);
+      enable_surface_option(_balle, SO_USE_LIGHTING);
+    }
+    else
+    {
+      disable_surface_option(_brick, SO_USE_LIGHTING);
+      disable_surface_option(_wall, SO_USE_LIGHTING);
+      disable_surface_option(_balle, SO_USE_LIGHTING);
+    }
+    break;
+  default:
+    break;
+  }
   
 }
 
