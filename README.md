@@ -14,7 +14,6 @@ Le but de ce projet est la création d'un casse-briques en vue isométrique.
 * collisions balle avec les briques
 * ~~collisions raquette avec la balle~~
 * ~~collisions balle avec le bords du plateau de jeu~~
-* collision briques
 * système de score
 * différents niveaux
 
