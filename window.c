@@ -28,13 +28,15 @@ static void key(int keycode);
 static void sortie(void);
 
 /*!\brief une surface représentant un quadrilatère */
-static surface_t *_quad = NULL;
+static surface_t *_brick = NULL;
 /*!\brief une surface représentant un cube */
-static surface_t *_cube = NULL;
+static surface_t *_wall = NULL;
 /*!\brief une surface représentant une sphere */
-static surface_t *_sphere = NULL;
+static surface_t *_balle = NULL;
 
 static surface_t *_raquette = NULL;
+
+static surface_t *_sol = NULL;
 
 
 /* des variable d'états pour activer/désactiver des options de rendu */
@@ -50,8 +52,8 @@ static int _plateau[] = {
     1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,
     1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,
     1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,
-    1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+    1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,
+    1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,
     1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
     1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
     1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
@@ -67,12 +69,63 @@ static int _plateau[] = {
 static int _H = 19;
 static int _W = 15;
 
-//Je positionne la raquette en dessous de la position de départ de ma balle
+// Position de départ de ma balle
+static vec3 _ballePosition = {0, 6, 0.0f};
+// Je positionne la raquette en dessous de la position de départ de ma balle
 static vec3 _raquettePosition = {0, 13, 0.0f};
+// Vitesse de la balle, initialiser dans la fonction init
+static vec2 _vitesseBalle = {0, 0};
 
-void idle() {
-  
+void game() {
+  /* on va récupérer le delta-temps */
+  static double t0 = 0.0; // le temps à la frame précédente
+  double t, dt;
+  t = gl4dGetElapsedTime();
+  dt = (t - t0) / 1000.0; // diviser par mille pour avoir des secondes
+  // pour le frame d'après, je mets à jour t0
+  t0 = t;
+
+  //Physique Netwon (souvenir de Godot)
+  _ballePosition.x += _vitesseBalle.x * dt;
+  _ballePosition.y += _vitesseBalle.y * dt;
+
+  float md =  _W - 1.5f;
+  float mg = -_W - 1.0f;
+  float mb = _H - 9.0f;
+  float mh = - _H - 7.0f;
+  //printf("mb %f \n", mb);
+  //printf("mh %f \n", mh);
+  //printf("- %f \n", mg);
+  if (_ballePosition.y <= mh) {
+    //printf("toucher \n");
+    //printf("%f\n", _vitesseBalle.y);
+    // printf("%f here\n", _ballePosition.y);
+    _vitesseBalle.y = -_vitesseBalle.y;
+    _ballePosition.x += 0.2f;
+  } else if(_ballePosition.x >= md) {
+    //printf("toucher");
+    _vitesseBalle.x = -_vitesseBalle.x;
+    _ballePosition.y -= 0.2f;
+  } else if (_ballePosition.x <= mg)
+  {
+    _vitesseBalle.x = -_vitesseBalle.x;
+    //printf("toucher");
+    _ballePosition.y -= 0.2f;
+  }
+   else if (_ballePosition.y >= mb) {
+    // printf("| perdu \n");
+    // printf("- %f \n", _ballePosition.y);
+    // printf("+ %d \n", _H);
+    // printf("mb %f \n", mb);
+    //exit(1);
+    _ballePosition.x = 0.0;
+    _ballePosition.y = 6.0;
+    _vitesseBalle.y = 0.0;
+    _vitesseBalle.x = 0.0;
+  } 
 }
+
+
 /*!\brief paramètre l'application et lance la boucle infinie. */
 int main(int argc, char **argv)
 {
@@ -91,7 +144,7 @@ int main(int argc, char **argv)
   /* mettre en place la fonction d'interception clavier */
   gl4duwKeyDownFunc(key);
 
-  gl4duwIdleFunc(idle);
+  gl4duwIdleFunc(game);
   /* mettre en place la fonction de display */
   gl4duwDisplayFunc(draw);
   /* boucle infinie pour éviter que le programme ne s'arrête et ferme
@@ -104,57 +157,71 @@ int main(int argc, char **argv)
  * utilisées dans ce code */
 void init(void)
 {
+  GLuint id_ball;
+  GLuint id_brick;
+  GLuint id_wall;
   GLuint id;
+
   vec4 r = {1, 0, 0, 1}, g = {0, 1, 0, 1}, b = {0, 0, 1, 1};
+
   /* création d'un screen GL4Dummies (texture dans laquelle nous
    * pouvons dessiner) aux dimensions de la fenêtre.  IMPORTANT de
    * créer le screen avant d'utiliser les fonctions liées au
    * textures */
   gl4dpInitScreen();
   /* Pour forcer la désactivation de la synchronisation verticale */
-  SDL_GL_SetSwapInterval(0);
+  SDL_GL_SetSwapInterval(1);
+
   /* on créé nos trois type de surfaces */
-  _quad = mk_quad();           /* ça fait 2 triangles        */
-  _cube = mk_cube();           /* ça fait 2x6 triangles      */
-  _sphere = mk_sphere(12, 12); /* ça fait 12x12x2 trianles ! */
+  _brick = mk_cube();           /* ça fait 2x6 triangles        */
+  _wall = mk_cube();           /* ça fait 2x6 triangles      */
+  _balle = mk_sphere(12, 12); /* ça fait 12x12x2 trianles ! */
   _raquette = mk_cube();       /* ça fait 2x6 triangles      */
+  _sol = mk_cube();
 
   /* on change les couleurs de surfaces */
-  _quad->dcolor = r;
-  _cube->dcolor = b;
-  _sphere->dcolor = g;  //Balle en verte
+  _brick->dcolor = b;
+  _wall->dcolor = b;
+  _balle->dcolor = g;  //Balle en verte
   _raquette->dcolor = r; //Raquette en rouge pour l'identifier
+  _sol->dcolor = b;
 
-  GLuint id_brick = get_texture_from_BMP("images/texture_wall.bmp");
-  set_texture_id(_cube, id_brick);
+  _vitesseBalle.x = 0.0f;
+  _vitesseBalle.y = 0.0f;
+
+  id_wall = get_texture_from_BMP("images/texture_wall.bmp");
+  id_ball = get_texture_from_BMP("images/balle_texture.bmp");
+  id_brick = get_texture_from_BMP("images/brique_Texture.bmp");
 
   /* on leur rajoute à toutes la même texture */
-  id = get_texture_from_BMP("images/tex.bmp");
-  set_texture_id(_quad, id);
-  set_texture_id(_cube, id);
-  set_texture_id(_sphere, id);
-  set_texture_id(_raquette, id);
+  set_texture_id(_wall, id_wall);
+  set_texture_id(_brick, id_brick);
+  set_texture_id(_balle, id_ball);
+  set_texture_id(_raquette, id_wall);
+  set_texture_id(_sol, id_wall);
 
   /* si _use_tex != 0, on active l'utilisation de la texture pour les
    * trois */
   if (_use_tex)
   {
-    enable_surface_option(_quad, SO_USE_TEXTURE);
-    enable_surface_option(_cube, SO_USE_TEXTURE);
-    enable_surface_option(_sphere, SO_USE_TEXTURE);
+    enable_surface_option(_brick, SO_USE_TEXTURE);
+    enable_surface_option(_wall, SO_USE_TEXTURE);
+    enable_surface_option(_balle, SO_USE_TEXTURE);
     enable_surface_option(_raquette, SO_USE_TEXTURE);
+    enable_surface_option(_sol, SO_USE_TEXTURE);
   }
   /* si _use_lighting != 0, on active l'ombrage */
   if (_use_lighting)
   {
-    enable_surface_option(_quad, SO_USE_LIGHTING);
-    enable_surface_option(_cube, SO_USE_LIGHTING);
-    enable_surface_option(_sphere, SO_USE_LIGHTING);
+    enable_surface_option(_brick, SO_USE_LIGHTING);
+    enable_surface_option(_wall, SO_USE_LIGHTING);
+    enable_surface_option(_balle, SO_USE_LIGHTING);
     enable_surface_option(_raquette, SO_USE_LIGHTING);
+    enable_surface_option(_sol, SO_USE_LIGHTING);
   }
   /* on désactive le back cull face pour le quadrilatère, ainsi on
    * peut voir son arrière quand le lighting est inactif */
-  disable_surface_option(_quad, SO_CULL_BACKFACES);
+  //disable_surface_option(_brick, SO_CULL_BACKFACES);
   /* mettre en place la fonction à appeler en cas de sortie */
   atexit(sortie);
 }
@@ -162,6 +229,7 @@ void init(void)
 /*!\brief la fonction appelée à chaque display. */
 void draw(void)
 {
+  vec4 r = {1, 0, 0, 1}, b = {0, 0, 1, 1}, g = {0, 1, 0, 1}, y = {1, 0, 1, 1}, gris = {1, 1, 1, 0};
   static float a = 0.0f;
   float model_view_matrix[16], projection_matrix[16], nmv[16];
   /* effacer l'écran et le buffer de profondeur */
@@ -183,8 +251,13 @@ void draw(void)
 
   // translate(nmv, -3.0f, 0.0f, 0.0f);
   // rotate(nmv, a, 1.0f, 0.0f, 0.0f);
-  // transform_n_rasterize(_quad, nmv, projection_matrix);
+  // transform_n_rasterize(_brick, nmv, projection_matrix);
   /* le cube est mis à droite et tourne autour de son axe z */
+
+  _brick->dcolor = gris;
+  _wall->dcolor = gris;
+  _balle->dcolor = g;
+  _sol->dcolor = b;
 
   float cX = -_W * 2.0f / 2;
   float cZ = -_H * 2.0f / 2;
@@ -197,13 +270,17 @@ void draw(void)
         memcpy(nmv, model_view_matrix, sizeof nmv); /* copie model_view_matrix dans nmv */
         translate(nmv, 2 * j + cX, 0.0f, 2 * i + cZ);
         // rotate(nmv, a, 0.0f, 0.0f, 1.0f);
-        transform_n_rasterize(_cube, nmv, projection_matrix);
+        transform_n_rasterize(_wall, nmv, projection_matrix);
       } else if(_plateau[i * _W + j] == 2) {
-        memcpy(nmv, model_view_matrix, sizeof nmv); /* copie model_view_matrix dans nmv */
+        // memcpy(nmv, model_view_matrix, sizeof nmv); /* copie model_view_matrix dans nmv */
+        // translate(nmv, 2 * j + cX, -1.0f, 2 * i + cZ);
+        // // rotate(nmv, a, 0.0f, 0.0f, 1.0f);
+        // transform_n_rasterize(_brick, nmv, projection_matrix);
+      } /*else if(_plateau[i * _W + j] == 0) {
+        memcpy(nmv, model_view_matrix, sizeof nmv);
         translate(nmv, 2 * j + cX, 0.0f, 2 * i + cZ);
-        // rotate(nmv, a, 0.0f, 0.0f, 1.0f);
-        transform_n_rasterize(_cube, nmv, projection_matrix);
-      }
+        transform_n_rasterize(_sol, nmv, projection_matrix);
+      }*/
     }
   }
 
@@ -211,11 +288,11 @@ void draw(void)
 
   // balle du casse brique
   memcpy(nmv, model_view_matrix, sizeof nmv); /* copie model_view_matrix dans nmv */
-  translate(nmv, 0.0f, -8.0f, 0.0f);
+  translate(nmv, _ballePosition.x, -8.0f, _ballePosition.y);
   rotate(nmv, a, 0.0f, 1.0f, 0.0f);
-  transform_n_rasterize(_sphere, nmv, projection_matrix);
+  transform_n_rasterize(_balle, nmv, projection_matrix);
 
-  // raquette du casse brique
+  // raquette du casse brique (J'ai un grand rectangle décomposer en 2 petits)
   memcpy(nmv, model_view_matrix, sizeof nmv);
   translate(nmv, _raquettePosition.x -1 , 1.0f, _raquettePosition.y);
   transform_n_rasterize(_raquette ,nmv, projection_matrix);
@@ -244,63 +321,67 @@ void key(int keycode)
       _raquettePosition.x -= 0.5;
     }
   }
-  
-  switch (keycode)
-  {
-  case GL4DK_UP:
-    _ycam += 0.05f;
-    break;
-  case GL4DK_DOWN:
-    _ycam -= 0.05f;
-    break;
-  case GL4DK_t: /* 't' la texture */
-    _use_tex = !_use_tex;
-    if (_use_tex)
-    {
-      enable_surface_option(_quad, SO_USE_TEXTURE);
-      enable_surface_option(_cube, SO_USE_TEXTURE);
-      enable_surface_option(_sphere, SO_USE_TEXTURE);
-    }
-    else
-    {
-      disable_surface_option(_quad, SO_USE_TEXTURE);
-      disable_surface_option(_cube, SO_USE_TEXTURE);
-      disable_surface_option(_sphere, SO_USE_TEXTURE);
-    }
-    break;
-  case GL4DK_c: /* 'c' utiliser la couleur */
-    _use_color = !_use_color;
-    if (_use_color)
-    {
-      enable_surface_option(_quad, SO_USE_COLOR);
-      enable_surface_option(_cube, SO_USE_COLOR);
-      enable_surface_option(_sphere, SO_USE_COLOR);
-    }
-    else
-    {
-      disable_surface_option(_quad, SO_USE_COLOR);
-      disable_surface_option(_cube, SO_USE_COLOR);
-      disable_surface_option(_sphere, SO_USE_COLOR);
-    }
-    break;
-  case GL4DK_l: /* 'l' utiliser l'ombrage par la méthode Gouraud */
-    _use_lighting = !_use_lighting;
-    if (_use_lighting)
-    {
-      enable_surface_option(_quad, SO_USE_LIGHTING);
-      enable_surface_option(_cube, SO_USE_LIGHTING);
-      enable_surface_option(_sphere, SO_USE_LIGHTING);
-    }
-    else
-    {
-      disable_surface_option(_quad, SO_USE_LIGHTING);
-      disable_surface_option(_cube, SO_USE_LIGHTING);
-      disable_surface_option(_sphere, SO_USE_LIGHTING);
-    }
-    break;
-  default:
-    break;
+  if (keycode == GL4DK_SPACE) {
+    _vitesseBalle.x = -20.0f;
+    _vitesseBalle.y = -20.0f;
   }
+
+  // switch (keycode)
+  // {
+  // case GL4DK_UP:
+  //   _ycam += 0.05f;
+  //   break;
+  // case GL4DK_DOWN:
+  //   _ycam -= 0.05f;
+  //   break;
+  // case GL4DK_t: /* 't' la texture */
+  //   _use_tex = !_use_tex;
+  //   if (_use_tex)
+  //   {
+  //     enable_surface_option(_brick, SO_USE_TEXTURE);
+  //     enable_surface_option(_wall, SO_USE_TEXTURE);
+  //     enable_surface_option(_balle, SO_USE_TEXTURE);
+  //   }
+  //   else
+  //   {
+  //     disable_surface_option(_brick, SO_USE_TEXTURE);
+  //     disable_surface_option(_wall, SO_USE_TEXTURE);
+  //     disable_surface_option(_balle, SO_USE_TEXTURE);
+  //   }
+  //   break;
+  // case GL4DK_c: /* 'c' utiliser la couleur */
+  //   _use_color = !_use_color;
+  //   if (_use_color)
+  //   {
+  //     enable_surface_option(_brick, SO_USE_COLOR);
+  //     enable_surface_option(_wall, SO_USE_COLOR);
+  //     enable_surface_option(_balle, SO_USE_COLOR);
+  //   }
+  //   else
+  //   {
+  //     disable_surface_option(_brick, SO_USE_COLOR);
+  //     disable_surface_option(_wall, SO_USE_COLOR);
+  //     disable_surface_option(_balle, SO_USE_COLOR);
+  //   }
+  //   break;
+  // case GL4DK_l: /* 'l' utiliser l'ombrage par la méthode Gouraud */
+  //   _use_lighting = !_use_lighting;
+  //   if (_use_lighting)
+  //   {
+  //     enable_surface_option(_brick, SO_USE_LIGHTING);
+  //     enable_surface_option(_wall, SO_USE_LIGHTING);
+  //     enable_surface_option(_balle, SO_USE_LIGHTING);
+  //   }
+  //   else
+  //   {
+  //     disable_surface_option(_brick, SO_USE_LIGHTING);
+  //     disable_surface_option(_wall, SO_USE_LIGHTING);
+  //     disable_surface_option(_balle, SO_USE_LIGHTING);
+  //   }
+  //   break;
+  // default:
+  //   break;
+  // }
   
 }
 
@@ -308,20 +389,20 @@ void key(int keycode)
 void sortie(void)
 {
   /* on libère nos trois surfaces */
-  if (_quad)
+  if (_brick)
   {
-    free_surface(_quad);
-    _quad = NULL;
+    free_surface(_brick);
+    _brick = NULL;
   }
-  if (_cube)
+  if (_wall)
   {
-    free_surface(_cube);
-    _cube = NULL;
+    free_surface(_wall);
+    _wall = NULL;
   }
-  if (_sphere)
+  if (_balle)
   {
-    free_surface(_sphere);
-    _sphere = NULL;
+    free_surface(_balle);
+    _balle = NULL;
   }
   /* libère tous les objets produits par GL4Dummies, ici
    * principalement les screen */
