@@ -89,6 +89,7 @@ void game() {
   _ballePosition.x += _vitesseBalle.x * dt;
   _ballePosition.y += _vitesseBalle.y * dt;
 
+  //_raquette.x
   float md =  _W - 1.5f;
   float mg = -_W - 1.0f;
   float mb = _H - 9.0f;
@@ -122,7 +123,33 @@ void game() {
     _ballePosition.y = 6.0;
     _vitesseBalle.y = 0.0;
     _vitesseBalle.x = 0.0;
-  } 
+  }
+
+  //délimitation du dessus de la raquette
+  // if (_ballePosition.y >= _raquettePosition.y-6.5f)
+  // {
+  //   printf("Here, on touche !");
+  // }
+
+  //délimitation du coté droit de la raquette
+  // if (_ballePosition.x <= _raquettePosition.x + 2.0f)
+  // {
+  //   printf("Here, on touche !");
+  // }
+  
+  //délimitation du côté gauche de la raquette
+  // if (_ballePosition.x >= _raquettePosition.x - 2.0f)
+  // {
+  //   printf("Here, on touche !");
+  // }
+
+  //J'ai décomposé au-dessus les différentes conditions pour délimiter ma raquette
+  if (_ballePosition.y >= _raquettePosition.y-6.5f && _ballePosition.x <= _raquettePosition.x + 3.5f && _ballePosition.x >= _raquettePosition.x - 4.5f)
+  {
+    _vitesseBalle.y = -_vitesseBalle.y;
+  }
+  
+
 }
 
 
@@ -313,17 +340,17 @@ void key(int keycode)
 {
   if(keycode == GL4DK_e) {
     if (_raquettePosition.x <= _W - 6) {   
-      _raquettePosition.x += 0.5;
+      _raquettePosition.x += 0.7;
     }
   }
   if (keycode == GL4DK_a){
     if(_raquettePosition.x >= -_W + 4) {
-      _raquettePosition.x -= 0.5;
+      _raquettePosition.x -= 0.7;
     }
   }
   if (keycode == GL4DK_SPACE) {
-    _vitesseBalle.x = -20.0f;
-    _vitesseBalle.y = -20.0f;
+    _vitesseBalle.x = -15.0f;
+    _vitesseBalle.y = -15.0f;
   }
 
   // switch (keycode)
