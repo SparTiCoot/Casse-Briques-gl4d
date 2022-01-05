@@ -4,7 +4,7 @@ Ce projet a été réaliser par VILFEU Vincent, L2B
 
 Le but de ce projet est la création d'un casse-briques en vue isométrique.
 
-*Pour les incultes, le casse-briques et en jeu qui est apparu dans les années 70, l'objectif est plutôt simple détruire avec une balle l'ensemble des briques disposer sur le plateau.*
+*Pour les incultes, le casse-briques est en jeu qui est apparu dans les années 70, l'objectif est plutôt simple détruire avec une balle l'ensemble des briques disposer sur le plateau.*
 
 # Mon objectfi
 
