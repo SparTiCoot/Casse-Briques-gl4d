@@ -1,12 +1,5 @@
 /*!\file window.c
- * \brief Utilisation du raster DIY comme pipeline de rendu 3D. Cet
- * exemple montre les géométries disponibles et quelques
- * transformations dessus.
- * \author Farès BELHADJ, amsi@up8.edu
- * \date November 16, 2021.
- * \todo exercice intéressant à faire : changer la variation de
- * l'angle de rotation pour qu'il soit dépendant du temps et non du
- * framerate
+ * \author VILFEU Vincent,
  */
 #include <assert.h>
 /* inclusion des entêtes de fonctions de gestion de primitives simples
